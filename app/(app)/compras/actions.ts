@@ -47,7 +47,13 @@ function redondear2(n: number): number {
 // Proveedores
 // =============================================================================
 
-export const ESTADOS_PROVEEDOR = ["ACTIVO", "INACTIVO", "EN_EVALUACION", "BLOQUEADO"];
+// Sin "export": un archivo "use server" solo puede exportar funciones async
+// — exportar este array se rompería en runtime apenas algún componente
+// cliente lo importara (ver el bug real de TIPOS_VERIFICACION_ITEM en
+// Cierre y Postventa). Como solo se usa aquí mismo para validar, se deja
+// privado; si algún día un panel necesita esta lista, debe vivir en un
+// archivo aparte sin "use server", como lib/cierre-postventa/constantes.ts.
+const ESTADOS_PROVEEDOR = ["ACTIVO", "INACTIVO", "EN_EVALUACION", "BLOQUEADO"];
 
 function camposProveedorDesdeFormData(formData: FormData) {
   return {

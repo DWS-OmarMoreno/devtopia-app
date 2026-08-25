@@ -6,6 +6,7 @@ import { createClient } from "@/utils/supabase/server";
 import { getUsuarioActual, usuarioTienePermiso } from "@/lib/auth/getUsuarioActual";
 import type { Accion } from "@/lib/rbac";
 import type { TablesInsert, TablesUpdate } from "@/utils/database.types";
+import { TIPOS_VERIFICACION_ITEM } from "@/lib/cierre-postventa/constantes";
 
 export type ResultadoAccion = { ok: true } | { ok: false; error: string };
 export type ResultadoConId = { ok: true; id: string } | { ok: false; error: string };
@@ -52,15 +53,10 @@ function sumarMeses(fechaIso: string, meses: number): string {
 // reutilizable entre proyectos (ver docs/data-model/06-cierre-postventa.md).
 // =============================================================================
 
-export const TIPOS_VERIFICACION_ITEM = [
-  "ENTREGABLE_ACEPTADO",
-  "FIRMA_CLIENTE",
-  "RECURSOS_LIBERADOS",
-  "FACTURACION_COMPLETA",
-  "ACTIVOS_DEVUELTOS",
-  "DOCUMENTACION_ENTREGADA",
-  "OTRO",
-];
+// TIPOS_VERIFICACION_ITEM vive en lib/cierre-postventa/constantes.ts (no aquí)
+// — un archivo "use server" solo puede exportar funciones async; exportar un
+// array desde aquí se rompe en runtime apenas un componente cliente lo
+// importa (ver el comentario en ese archivo).
 
 export async function crearPlantillaChecklist(formData: FormData): Promise<ResultadoConId> {
   const { usuario, error } = await requerirPermiso("crear", "checklist");

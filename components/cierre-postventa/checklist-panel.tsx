@@ -47,8 +47,8 @@ import {
   eliminarItemPlantilla,
   iniciarChecklistProyecto,
   marcarItemChecklist,
-  TIPOS_VERIFICACION_ITEM,
 } from "@/app/(app)/cierre-postventa/actions";
+import { TIPOS_VERIFICACION_ITEM } from "@/lib/cierre-postventa/constantes";
 
 const ETIQUETAS_TIPO_VERIFICACION: Record<string, string> = {
   ENTREGABLE_ACEPTADO: "Entregable aceptado",

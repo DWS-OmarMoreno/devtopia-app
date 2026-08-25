@@ -110,6 +110,7 @@ export function AlertasPanel({ reglas, roles, usuarios, envios, puedeCrear, pued
   };
 
   return (
+    <>
     <Tabs aria-label="Secciones de Alertas" variant="underlined">
       <Tab key="reglas" title="Reglas">
         <div className="flex flex-col gap-4 py-2">
@@ -216,6 +217,7 @@ export function AlertasPanel({ reglas, roles, usuarios, envios, puedeCrear, pued
           </Table>
         </div>
       </Tab>
+    </Tabs>
 
       <Modal isOpen={modalAbierto} onOpenChange={setModalAbierto} size="2xl">
         <ModalContent>
@@ -354,6 +356,6 @@ export function AlertasPanel({ reglas, roles, usuarios, envios, puedeCrear, pued
           )}
         </ModalContent>
       </Modal>
-    </Tabs>
+    </>
   );
 }
