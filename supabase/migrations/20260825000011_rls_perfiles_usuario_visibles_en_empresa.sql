@@ -1,0 +1,32 @@
+-- =============================================================================
+-- Devtopia ERP — Etapa 11 (fix): compañeros de la misma empresa pueden leer
+-- el nombre/perfil básico de los demás usuarios de esa empresa.
+--
+-- Detectado al construir el módulo CRM y Ventas: las pantallas de Cuentas y
+-- Oportunidades muestran "ejecutivo comercial" y "quién registró" cada
+-- actividad de seguimiento embebiendo `perfiles_usuario(nombre_completo)` vía
+-- PostgREST. Con la política `perfiles_usuario_self_select_pol`
+-- (20260825000009_rls_lectura_basica_propia.sql) cada usuario solo puede leer
+-- SU PROPIA fila — así que un Comercial veía su propio nombre en esas
+-- columnas, pero "—" (nulo, filtrado por RLS) para cualquier fila registrada
+-- por un compañero. No es un error visible como excepción (PostgREST
+-- simplemente omite el embed bloqueado por RLS), lo que lo hace fácil de no
+-- notar hasta revisar los datos con más de un usuario real.
+--
+-- Esta política es ADITIVA (amplía la anterior, no la reemplaza ni la
+-- contradice — Postgres combina políticas del mismo comando con OR) y
+-- deliberadamente amplia: cualquier usuario autenticado puede leer los
+-- perfiles de TODOS los usuarios de su propia empresa (no solo el suyo). Es
+-- el equivalente a poder ver el nombre de un compañero en el directorio
+-- interno — no expone nada que no sea ya visible dentro de la organización,
+-- y sigue exigiendo pertenecer a la misma empresa (`fn_empresa_actual()`).
+-- Administrar el perfil de un tercero (cambiar su rol, activarlo/
+-- desactivarlo) sigue exigiendo el permiso de EDITAR sobre CONFIGURACION
+-- (política de UPDATE sin cambios, ver 20260825000008_rls_baseline.sql).
+--
+-- ROLLBACK:
+--   drop policy if exists perfiles_usuario_misma_empresa_select_pol on perfiles_usuario;
+-- =============================================================================
+
+create policy perfiles_usuario_misma_empresa_select_pol on perfiles_usuario
+  for select using (empresa_id = fn_empresa_actual());

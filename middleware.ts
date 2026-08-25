@@ -1,24 +1,13 @@
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { updateSession } from "@/utils/supabase/middleware";
 
-export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-
-  if (
-    (pathname === "/login" || pathname === "/register") &&
-    request.cookies.has("userAuth")
-  )
-    return NextResponse.redirect(new URL("/", request.url));
-
-  if (
-    (pathname === "/" || pathname === "/accounts") &&
-    !request.cookies.has("userAuth")
-  )
-    return NextResponse.redirect(new URL("/login", request.url));
-
-  return NextResponse.next();
+export async function middleware(request: NextRequest) {
+  return updateSession(request);
 }
 
 export const config = {
-  matcher: ["/", "/accounts", "/login", "/register"],
+  // Corre en todo excepto assets estáticos y de Next.js internos, para que
+  // cualquier ruta nueva de módulo (app/(app)/<modulo>/...) quede protegida
+  // automáticamente sin tener que listar cada path a mano en el matcher.
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
 };

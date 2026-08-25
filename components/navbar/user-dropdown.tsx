@@ -7,17 +7,24 @@ import {
   Navbar,
   NavbarItem,
 } from "@nextui-org/react";
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import { DarkModeSwitch } from "./darkmodeswitch";
 import { useRouter } from "next/navigation";
-import { deleteAuthCookie } from "@/actions/auth.action";
+import { useUser, signOut } from '../../hooks/useUser';
 
 export const UserDropdown = () => {
   const router = useRouter();
+  const [isItAuthenticated, setIsAuthenticated] = useState(false);
+  const { user, loading, isAuthenticated } = useUser();
 
   const handleLogout = useCallback(async () => {
-    await deleteAuthCookie();
-    router.replace("/login");
+    const logOut = await signOut();
+    if (logOut) {
+      setIsAuthenticated(false);
+      router.replace("/");
+      router.refresh();
+    }
+
   }, [router]);
 
   return (
@@ -38,8 +45,8 @@ export const UserDropdown = () => {
         <DropdownItem
           key='profile'
           className='flex flex-col justify-start w-full items-start'>
-          <p>Signed in as</p>
-          <p>zoey@example.com</p>
+          <p>Iniciado como</p>
+          <p>{user?.email}</p>
         </DropdownItem>
         <DropdownItem key='settings'>My Settings</DropdownItem>
         <DropdownItem key='team_settings'>Team Settings</DropdownItem>
@@ -52,7 +59,7 @@ export const UserDropdown = () => {
           color='danger'
           className='text-danger'
           onPress={handleLogout}>
-          Log Out
+          Cerrar Sesión
         </DropdownItem>
         <DropdownItem key='switch'>
           <DarkModeSwitch />

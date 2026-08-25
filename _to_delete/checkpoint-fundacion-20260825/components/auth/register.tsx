@@ -1,30 +1,45 @@
 "use client";
 
-import { createAuthCookie } from "@/actions/auth.action";
+import { createClient } from "@/utils/supabase/client";
 import { RegisterSchema } from "@/helpers/schemas";
 import { RegisterFormType } from "@/helpers/types";
 import { Button, Input } from "@nextui-org/react";
 import { Formik } from "formik";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
+
+const supabase = createClient();
 
 export const Register = () => {
   const router = useRouter();
+  const [errorMessage, setErrorMessage] = useState("");
 
   const initialValues: RegisterFormType = {
-    name: "Acme",
-    email: "admin@acme.com",
-    password: "admin",
-    confirmPassword: "admin",
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
   };
 
   const handleRegister = useCallback(
     async (values: RegisterFormType) => {
-      // `values` contains name, email & password. You can use provider to register user
+      const { data, error } = await supabase.auth.signUp({
+        email: values.email,
+        password: values.password,
+        options: { data: { name: values.name } },
+      });
 
-      await createAuthCookie();
-      router.replace("/");
+      if (error) {
+        setErrorMessage(error.message);
+        return;
+      }
+
+      if (data.user) {
+        setErrorMessage("");
+        router.replace("/");
+        router.refresh();
+      }
     },
     [router]
   );
@@ -79,6 +94,7 @@ export const Register = () => {
               />
             </div>
 
+            {errorMessage && <div style={{ color: 'red' }}>{errorMessage}</div>}
             <Button
               onPress={() => handleSubmit()}
               variant='flat'

@@ -1,28 +1,24 @@
 import React from "react";
 import { Sidebar } from "./sidebar.styles";
-import { Avatar, Tooltip } from "@nextui-org/react";
+import { Avatar, Tooltip, Image } from "@nextui-org/react";
 import { CompaniesDropdown } from "./companies-dropdown";
 import { HomeIcon } from "../icons/sidebar/home-icon";
 import { PaymentsIcon } from "../icons/sidebar/payments-icon";
-import { BalanceIcon } from "../icons/sidebar/balance-icon";
 import { AccountsIcon } from "../icons/sidebar/accounts-icon";
 import { CustomersIcon } from "../icons/sidebar/customers-icon";
 import { ProductsIcon } from "../icons/sidebar/products-icon";
-import { ReportsIcon } from "../icons/sidebar/reports-icon";
-import { DevIcon } from "../icons/sidebar/dev-icon";
-import { ViewIcon } from "../icons/sidebar/view-icon";
+import { ChangeLogIcon } from "../icons/sidebar/changelog-icon";
 import { SettingsIcon } from "../icons/sidebar/settings-icon";
-import { CollapseItems } from "./collapse-items";
 import { SidebarItem } from "./sidebar-item";
 import { SidebarMenu } from "./sidebar-menu";
-import { FilterIcon } from "../icons/sidebar/filter-icon";
 import { useSidebarContext } from "../layout/layout-context";
-import { ChangeLogIcon } from "../icons/sidebar/changelog-icon";
 import { usePathname } from "next/navigation";
+import { useUser } from "@/hooks/useUser";
 
 export const SidebarWrapper = () => {
   const pathname = usePathname();
   const { collapsed, setCollapsed } = useSidebarContext();
+  const { tienePermiso, rol } = useUser();
 
   return (
     <aside className="h-screen z-[20] sticky top-0">
@@ -40,83 +36,72 @@ export const SidebarWrapper = () => {
         <div className="flex flex-col justify-between h-full">
           <div className={Sidebar.Body()}>
             <SidebarItem
-              title="Home"
+              title="Inicio"
               icon={<HomeIcon />}
               isActive={pathname === "/"}
               href="/"
             />
-            <SidebarMenu title="Main Menu">
-              <SidebarItem
-                isActive={pathname === "/accounts"}
-                title="Accounts"
-                icon={<AccountsIcon />}
-                href="accounts"
-              />
-              <SidebarItem
-                isActive={pathname === "/payments"}
-                title="Payments"
-                icon={<PaymentsIcon />}
-              />
-              <CollapseItems
-                icon={<BalanceIcon />}
-                items={["Banks Accounts", "Credit Cards", "Loans"]}
-                title="Balances"
-              />
-              <SidebarItem
-                isActive={pathname === "/customers"}
-                title="Customers"
-                icon={<CustomersIcon />}
-              />
-              <SidebarItem
-                isActive={pathname === "/products"}
-                title="Products"
-                icon={<ProductsIcon />}
-              />
-              <SidebarItem
-                isActive={pathname === "/reports"}
-                title="Reports"
-                icon={<ReportsIcon />}
-              />
+            <SidebarMenu title="Módulos">
+              {tienePermiso("CRM_VENTAS", "leer") && (
+                <SidebarItem
+                  isActive={pathname?.startsWith("/crm") ?? false}
+                  title="CRM y Ventas"
+                  icon={<CustomersIcon />}
+                  href="/crm"
+                />
+              )}
+              {tienePermiso("PRODUCTOS_SERVICIOS", "leer") && (
+                <SidebarItem
+                  isActive={pathname?.startsWith("/productos-servicios") ?? false}
+                  title="Productos y Servicios"
+                  icon={<ProductsIcon />}
+                  href="/productos-servicios"
+                />
+              )}
+              {tienePermiso("CONTRATOS_PROYECTOS", "leer") && (
+                <SidebarItem
+                  isActive={pathname?.startsWith("/contratos-proyectos") ?? false}
+                  title="Contratos y Proyectos"
+                  icon={<AccountsIcon />}
+                  href="/contratos-proyectos"
+                />
+              )}
+              {tienePermiso("COMPRAS", "leer") && (
+                <SidebarItem
+                  isActive={pathname?.startsWith("/compras") ?? false}
+                  title="Compras y Subcontratación"
+                  icon={<PaymentsIcon />}
+                  href="/compras"
+                />
+              )}
+              {tienePermiso("CIERRE_POSTVENTA", "leer") && (
+                <SidebarItem
+                  isActive={pathname?.startsWith("/cierre-postventa") ?? false}
+                  title="Cierre y Postventa"
+                  icon={<ChangeLogIcon />}
+                  href="/cierre-postventa"
+                />
+              )}
             </SidebarMenu>
 
-            <SidebarMenu title="General">
-              <SidebarItem
-                isActive={pathname === "/developers"}
-                title="Developers"
-                icon={<DevIcon />}
-              />
-              <SidebarItem
-                isActive={pathname === "/view"}
-                title="View Test Data"
-                icon={<ViewIcon />}
-              />
-              <SidebarItem
-                isActive={pathname === "/settings"}
-                title="Settings"
-                icon={<SettingsIcon />}
-              />
-            </SidebarMenu>
-
-            <SidebarMenu title="Updates">
-              <SidebarItem
-                isActive={pathname === "/changelog"}
-                title="Changelog"
-                icon={<ChangeLogIcon />}
-              />
-            </SidebarMenu>
+            {tienePermiso("CONFIGURACION", "leer") && (
+              <SidebarMenu title="General">
+                <SidebarItem
+                  isActive={pathname?.startsWith("/configuracion") ?? false}
+                  title="Configuración"
+                  icon={<SettingsIcon />}
+                  href="/configuracion"
+                />
+              </SidebarMenu>
+            )}
           </div>
           <div className={Sidebar.Footer()}>
-            <Tooltip content={"Settings"} color="primary">
+            <Tooltip content={rol?.nombre ?? "Sin rol"} color="primary">
               <div className="max-w-fit">
                 <SettingsIcon />
               </div>
             </Tooltip>
-            <Tooltip content={"Adjustments"} color="primary">
-              <div className="max-w-fit">
-                <FilterIcon />
-              </div>
-            </Tooltip>
-            <Tooltip content={"Profile"} color="primary">
+            <Tooltip content={"Perfil"} color="primary">
               <Avatar
                 src="https://i.pravatar.cc/150?u=a042581f4e29026704d"
                 size="sm"

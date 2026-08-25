@@ -1,35 +1,76 @@
 "use client";
-
-import { createAuthCookie } from "@/actions/auth.action";
+import { createClient } from "@/utils/supabase/client";
 import { LoginSchema } from "@/helpers/schemas";
 import { LoginFormType } from "@/helpers/types";
 import { Button, Input } from "@nextui-org/react";
-import { Formik } from "formik";
-import Link from "next/link";
+import { Formik, ErrorMessage } from "formik";
 import { useRouter } from "next/navigation";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
+
+const supabase = createClient();
 
 export const Login = () => {
   const router = useRouter();
 
   const initialValues: LoginFormType = {
-    email: "admin@acme.com",
-    password: "admin",
+    email: "",
+    password: "",
   };
+
+  const errors: Record<string, boolean> = {};
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const handleLogin = useCallback(
     async (values: LoginFormType) => {
       // `values` contains email & password. You can use provider to connect user
+      setIsLoading(true);
+      let { data, error } = await supabase.auth.signInWithPassword({
+        email: values.email,
+        password: values.password
+      })
 
-      await createAuthCookie();
-      router.replace("/");
+      if (error) {
+        setErrorMessage("Credenciales incorrectas. Por favor, intenta de nuevo.");
+        setIsLoading(false);
+        setIsAuthenticated(false);
+        return;
+      }
+
+      if (data.user) {
+        setErrorMessage("");
+        setIsLoading(false);
+        setIsAuthenticated(true);
+        router.replace("/");
+        router.refresh();
+      }
     },
     [router]
   );
+  const modalOverlayStyle: React.CSSProperties = {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    width: '100vw',
+    height: '100vh',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1000,
+  };
 
+  const modalContentStyle: React.CSSProperties = {
+    padding: '20px',
+    backgroundColor: 'white',
+    borderRadius: '5px',
+    textAlign: 'center',
+    color: 'black'
+  };
   return (
     <>
-      <div className='text-center text-[25px] font-bold mb-6'>Login</div>
+      <div className='text-center text-[25px] font-bold mb-6'>Iniciar Sesión</div>
 
       <Formik
         initialValues={initialValues}
@@ -40,7 +81,7 @@ export const Login = () => {
             <div className='flex flex-col w-1/2 gap-4 mb-4'>
               <Input
                 variant='bordered'
-                label='Email'
+                label='Correo Electónico'
                 type='email'
                 value={values.email}
                 isInvalid={!!errors.email && !!touched.email}
@@ -49,7 +90,7 @@ export const Login = () => {
               />
               <Input
                 variant='bordered'
-                label='Password'
+                label='Contraseña'
                 type='password'
                 value={values.password}
                 isInvalid={!!errors.password && !!touched.password}
@@ -57,23 +98,24 @@ export const Login = () => {
                 onChange={handleChange("password")}
               />
             </div>
-
+            {errorMessage && <div style={{ color: 'red' }}>{errorMessage}</div>}
             <Button
               onPress={() => handleSubmit()}
               variant='flat'
               color='primary'>
-              Login
+              Ingresar
             </Button>
+
+            {isLoading && (
+              <div style={modalOverlayStyle}>
+                <div style={modalContentStyle}>
+                  <div className="loader"></div>
+                </div>
+              </div>
+            )}
           </>
         )}
       </Formik>
-
-      <div className='font-light text-slate-400 mt-4 text-sm'>
-        Don&apos;t have an account ?{" "}
-        <Link href='/register' className='font-bold'>
-          Register here
-        </Link>
-      </div>
     </>
   );
 };
